@@ -1,18 +1,12 @@
-mod client;
-mod server;
+use build_redis::Server;
 
-#[tokio::main]
-async fn main() -> Result<(), std::io::Error> {
-    tokio::spawn(async {
-        if let Err(e) = server::run().await {
-            eprintln!("Server error: {}", e);
+fn main() -> std::io::Result<()> {
+    let mut server = Server::bind("127.0.0.1:6379")?;
+    println!("Server listening on 127.0.0.1:6379");
+
+    loop {
+        if let Some(addr) = server.accept_one()? {
+            println!("New connection from {}", addr);
         }
-    });
-
-    match client::send_and_receive("Hello, World!").await {
-        Ok(response) => println!("Server responded: {}", response),
-        Err(e) => eprintln!("Client error: {}", e),
     }
-
-    Ok(())
 }
